@@ -20,6 +20,7 @@ def main(
             readable=True,
             writable=True,
             resolve_path=True,
+            help="Path of the target directory where the dataset is stored."
         ),
     ],
     source_directory: Annotated[
@@ -30,12 +31,50 @@ def main(
             dir_okay=True,
             readable=True,
             resolve_path=True,
+            help="Path of the directory where all raw images are stored."
         ),
     ] = Path("./raw_images"),
-    api_url: str = "https://my-json-server.typicode.com/Barchid/preprocessor_assignement/images",
-    height: int = 512,
-    width: int = 512
+    api_url: str = typer.Option("https://my-json-server.typicode.com/Barchid/preprocessor_assignement/images", help="URL or the JSON API where the label of all raw images are stored."),
+    height: int = typer.Option(512, help="New height of the images."),
+    width: int = typer.Option(512, help="New width of the images.")
 ):
+    """Script that preprocesses the images from a source directory so that they can be used to train a classifier on them. The labels of the images are located in a specified JSON API.
+    
+    This program applies 4 functions to each image:
+    
+    1. Resizes the image to a dimension of (height x width)
+    
+    2. Converts the image to grayscale
+    
+    3. Fetches the label name from the API
+    
+    4. Stores the processed image in a target directory.
+    
+    
+    The target directory's structure follows the required structure from PyTorch's DatasetFolder, i.e. :
+    
+    
+    target_directory/
+    
+    ├── class1
+    
+    │   ├── xxx.png
+    
+    │   ├── xxy.png
+    
+    │   └── ...
+    
+    ├── class2
+    
+    │   ├── xxx.png
+    
+    │   ├── xxy.png
+    
+    │   └── ...
+    
+    ...
+
+    """
     # iterate through all .png files from the directory of raw images
     logging.info(f"\nIterate through .png image files from {source_directory}\n#############\n")
 
