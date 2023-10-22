@@ -5,7 +5,6 @@ from pathlib import Path
 import logging
 from PIL import Image
 import requests
-from tqdm import tqdm
 
 # make INFO logs visible in the command line
 logging.getLogger().setLevel(logging.INFO)
@@ -38,9 +37,9 @@ def main(
     width: int = 512
 ):
     # iterate through all .png files from the directory of raw images
-    logging.info(f"\nIterate through .png image files from {source_directory}")
+    logging.info(f"\nIterate through .png image files from {source_directory}\n#############\n")
 
-    for png_file in tqdm(source_directory.glob("*.png")):
+    for png_file in source_directory.glob("*.png"):
         process_png_file(png_file, height, width, target_directory, api_url)
 
 
@@ -70,10 +69,12 @@ def process_png_file(png_file: Path, height: int, width: int, target_directory: 
 
     # fetch labels from API
     label = fetch_label_from_url(api_url, png_file)
-
-    store_result_in_target(image, label, png_file, target_directory)
-
-    logging.info(f"Succeeded processing and storing f{png_file.name}")
+    
+    if label is not None:
+        store_result_in_target(image, label, png_file, target_directory)
+        logging.info(f"Succeeded processing and storing f{png_file.name}\n")
+    else:
+        logging.warning(f"The label of {png_file} is not known by the JSON API {api_url}. Go to the next sample\n.")
 
 
 def create_target_dataset(target_directory: Path):
@@ -100,17 +101,22 @@ def fetch_label_from_url(api_url: str, png_file: Path):
         png_file (Path): the target .png file
 
     Returns:
-        str: the label name related to the .png file
+        str|None: the label name related to the .png file. If the API call fails, returns None.
     """
     # get ID from the png filename
     id = png_file.stem
 
     # HTTP GET request to the JSON API
     resp = requests.get(f"{api_url}/{id}")
-    data = json.loads(resp.content.decode())
+    
+    if resp.status_code == requests.codes.ok:
+        print(logging.info(f"{resp.status_code}"))
+        data = resp.json()
 
-    # Only return the label (=classname)
-    return data["classname"]
+        # Only return the label (=classname)
+        return data["classname"]
+    else:
+        return None
 
 
 def store_result_in_target(image: Image, label: str, png_file: Path, target_directory: Path):

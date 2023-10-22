@@ -1,6 +1,8 @@
 # custom ignores
 raw_images/*
 !raw_images/.gitkeep
+target_dataset/*
+!target_dataset/.gitignore
 
 # vscode
 .vscode/*
