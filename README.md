@@ -6,6 +6,7 @@ The code has been implemented in python 3.8. Here's an example to get this up an
 
 ```
 conda create -n assignement python=3.8
+conda activate assignement
 pip install Pillow "typer[all]" requests
 ```
 
